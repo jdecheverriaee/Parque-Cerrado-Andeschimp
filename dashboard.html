@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1220">
+  <title>Parque Cerrado · Dashboard</title>
+  <link rel="icon" href="assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <img class="logo" src="assets/logo.svg" alt="Andeschimp">
+    <div class="title"><b>Parque Cerrado</b><span>Dashboard</span></div>
+    <div class="spacer"></div>
+    <span id="net" class="pill"><span class="dot"></span><span id="netText">En línea</span></span>
+    <a class="btn" href="index.html">Escáner</a>
+  </header>
+
+  <main class="dash">
+    <div class="dash-head">
+      <h1>Resumen</h1>
+      <span class="updated" id="updated"></span>
+      <select id="period" aria-label="Periodo"></select>
+      <button class="btn" id="csvBtn">Descargar CSV</button>
+      <a class="btn hidden" id="sheetBtn" target="_blank" rel="noopener">Abrir Sheet</a>
+      <button class="btn hidden" id="seedBtn" title="Solo modo demo">Reiniciar demo</button>
+    </div>
+
+    <section class="kpis">
+      <div class="card kpi hero"><div class="k-label">Bicicletas en parque ahora</div><div class="k-value" id="kInside">—</div><div class="k-sub" id="kInsideSub"></div></div>
+      <div class="card kpi"><div class="k-label">Ingresos</div><div class="k-value" id="kIn">—</div><div class="k-sub">en el periodo</div></div>
+      <div class="card kpi"><div class="k-label">Retiros</div><div class="k-value" id="kOut">—</div><div class="k-sub">en el periodo</div></div>
+      <div class="card kpi"><div class="k-label">Bicicletas distintas</div><div class="k-value" id="kUnique">—</div><div class="k-sub">usaron el parque</div></div>
+      <div class="card kpi"><div class="k-label">Permanencia promedio</div><div class="k-value" id="kStay">—</div><div class="k-sub" id="kStaySub"></div></div>
+      <div class="card kpi"><div class="k-label">Ocupación máxima</div><div class="k-value" id="kPeak">—</div><div class="k-sub" id="kPeakSub"></div></div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <h2>Ocupación en el tiempo</h2>
+        <div class="chart-box"><canvas id="occChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Movimientos por hora</h2>
+        <div class="chart-box"><canvas id="hourChart"></canvas></div>
+      </div>
+    </section>
+
+    <section class="grid-2">
+      <div class="card">
+        <div class="card-head">
+          <h2>Bicicletas dentro del parque (<span id="insideCount">0</span>)</h2>
+          <input type="search" id="search" placeholder="Buscar chip, dorsal o nombre">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Chip</th><th>Dorsal</th><th>Nombre</th><th>Ingreso</th><th class="num">Tiempo dentro</th></tr></thead>
+            <tbody id="insideBody"></tbody>
+          </table>
+          <div class="empty hidden" id="insideEmpty">No hay bicicletas en el parque.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Últimos movimientos</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Hora</th><th>Tipo</th><th>Chip</th><th>Dorsal</th><th>Puesto</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+          <div class="empty hidden" id="logEmpty">Sin movimientos en el periodo.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="keyModal">
+    <form class="card" id="keyForm">
+      <h3>Clave de acceso</h3>
+      <p>Ingresa el PIN para ver los datos del parque cerrado.</p>
+      <label class="field"><span>Clave (PIN)</span><input type="password" id="keyInput"></label>
+      <div class="error-text" id="keyError"></div>
+      <div class="actions"><button class="btn primary" type="submit">Entrar</button></div>
+    </form>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="assets/config.js"></script>
+  <script src="assets/api.js"></script>
+  <script src="assets/dashboard.js"></script>
+</body>
+</html>

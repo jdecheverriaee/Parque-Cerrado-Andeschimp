@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1220">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Parque Cerrado · Escáner</title>
+  <link rel="icon" href="assets/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <img class="logo" src="assets/logo.svg" alt="Andeschimp">
+    <div class="title"><b>Parque Cerrado</b><span id="puestoLabel">Escáner</span></div>
+    <div class="spacer"></div>
+    <span id="net" class="pill"><span class="dot"></span><span id="netText">En línea</span></span>
+    <a class="btn icon" href="dashboard.html" title="Dashboard" aria-label="Dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>
+    </a>
+    <button class="btn icon" id="settingsBtn" title="Ajustes" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <main class="scanner-page">
+    <div class="counter">
+      <div>
+        <div class="label">Bicicletas en parque</div>
+        <div class="big" id="inside">—</div>
+      </div>
+      <div style="text-align:right">
+        <div class="label">Pendientes de envío</div>
+        <div class="big muted" id="queued" style="font-size:24px">0</div>
+      </div>
+    </div>
+
+    <div class="segmented" id="modes" role="tablist" aria-label="Tipo de registro">
+      <button data-mode="AUTO" class="active">Auto</button>
+      <button data-mode="IN">Ingreso</button>
+      <button data-mode="OUT">Retiro</button>
+    </div>
+
+    <div class="viewport">
+      <div id="reader"></div>
+      <div class="frame hidden" id="frame"></div>
+      <button class="btn stop hidden" id="stopBtn">Pausar</button>
+      <div class="placeholder" id="placeholder">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="13" width="4" height="4"/><path d="M13 7h4v4M7 13h4v4"/></svg>
+        <div>Apunta la cámara al QR del ThinTag</div>
+        <button class="btn primary" id="startBtn">Activar cámara</button>
+        <div class="error-text" id="camError"></div>
+      </div>
+    </div>
+
+    <div class="result" id="result">
+      <div class="r-type muted" style="font-size:16px;font-weight:600">Esperando escaneo…</div>
+      <div class="r-code"></div>
+    </div>
+
+    <form class="manual" id="manualForm" autocomplete="off">
+      <input type="text" id="manualCode" placeholder="Ingresar código manual" aria-label="Código del chip">
+      <button class="btn" type="submit">Registrar</button>
+    </form>
+
+    <section class="card">
+      <h2>Últimos escaneos en este equipo</h2>
+      <ul class="history" id="history"></ul>
+      <div class="empty" id="historyEmpty">Aún no hay escaneos.</div>
+    </section>
+  </main>
+
+  <div class="flash" id="flash"></div>
+
+  <div class="modal hidden" id="settings">
+    <form class="card" id="settingsForm">
+      <h3>Ajustes del puesto</h3>
+      <p>Se guardan en este equipo.</p>
+      <label class="field"><span>Nombre del puesto</span>
+        <input type="text" id="puestoInput" placeholder="Ej: Puerta A"></label>
+      <label class="field" id="keyField"><span>Clave de acceso (PIN)</span>
+        <input type="password" id="keyInput" placeholder="Clave entregada por el administrador"></label>
+      <div class="error-text" id="settingsError"></div>
+      <div class="actions">
+        <button class="btn" type="button" id="settingsCancel">Cancelar</button>
+        <button class="btn primary" type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="assets/config.js"></script>
+  <script src="assets/api.js"></script>
+  <script src="assets/scanner.js"></script>
+</body>
+</html>
