@@ -213,6 +213,21 @@
   }
 
   /* ---------- Cámara ---------- */
+  // Cámara elegida en este equipo ('' = trasera automática).
+  function cameraConfig() {
+    const id = API.store.get('camera', '');
+    return id || { facingMode: 'environment' };
+  }
+
+  async function runScanner() {
+    await scanner.start(
+      cameraConfig(),
+      { fps: 12, qrbox: (w, h) => { const s = Math.floor(Math.min(w, h) * 0.64); return { width: s, height: s }; } },
+      (text) => register(text),
+      () => {}
+    );
+  }
+
   async function startCamera() {
     $('camError').textContent = '';
     if (!window.Html5Qrcode) {
@@ -221,18 +236,49 @@
     }
     try {
       scanner = scanner || new Html5Qrcode('reader', { verbose: false });
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 12, qrbox: (w, h) => { const s = Math.floor(Math.min(w, h) * 0.64); return { width: s, height: s }; } },
-        (text) => register(text),
-        () => {}
-      );
+      try {
+        await runScanner();
+      } catch (err) {
+        // La cámara guardada ya no existe (otro equipo o permisos nuevos): vuelve a la trasera.
+        if (!API.store.get('camera', '')) throw err;
+        API.store.set('camera', '');
+        await runScanner();
+      }
       $('placeholder').classList.add('hidden');
       $('frame').classList.remove('hidden');
       $('stopBtn').classList.remove('hidden');
+      loadCameras();
     } catch (err) {
       $('camError').textContent = 'No se pudo abrir la cámara: ' + (err && err.message ? err.message : err) +
         '. Revisa los permisos del navegador (requiere HTTPS).';
+    }
+  }
+
+  // Los nombres de las cámaras solo están disponibles después de dar permiso.
+  async function loadCameras() {
+    let cams = [];
+    try { cams = await Html5Qrcode.getCameras(); } catch (e) { /* sin lista */ }
+    const sel = $('camSelect');
+    sel.innerHTML = '';
+    const opt = (value, label) => { const o = document.createElement('option'); o.value = value; o.textContent = label; sel.appendChild(o); };
+    opt('', 'Trasera (automática)');
+    cams.forEach((c, i) => opt(c.id, c.label || 'Cámara ' + (i + 1)));
+    const current = API.store.get('camera', '');
+    sel.value = cams.some((c) => c.id === current) ? current : '';
+    sel.classList.toggle('hidden', cams.length < 2);
+  }
+
+  async function switchCamera(id) {
+    API.store.set('camera', id);
+    $('camError').textContent = '';
+    try {
+      if (scanner && scanner.isScanning) await scanner.stop();
+      await runScanner();
+    } catch (err) {
+      API.store.set('camera', '');
+      $('camSelect').value = '';
+      try { await runScanner(); } catch (e) { /* se informa abajo */ }
+      $('camError').textContent = 'No se pudo usar esa cámara; se volvió a la trasera.';
     }
   }
 
@@ -241,6 +287,7 @@
     $('placeholder').classList.remove('hidden');
     $('frame').classList.add('hidden');
     $('stopBtn').classList.add('hidden');
+    $('camSelect').classList.add('hidden');
   }
 
   /* ---------- Ajustes ---------- */
@@ -278,6 +325,7 @@
   document.querySelectorAll('#modes button').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
   $('startBtn').addEventListener('click', startCamera);
   $('stopBtn').addEventListener('click', stopCamera);
+  $('camSelect').addEventListener('change', (e) => switchCamera(e.target.value));
   $('manualForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('manualCode').value;
