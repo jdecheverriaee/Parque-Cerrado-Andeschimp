@@ -256,8 +256,13 @@
 
   // Los nombres de las cámaras solo están disponibles después de dar permiso.
   async function loadCameras() {
+    // Se lee la lista directo del navegador: volver a pedir la cámara mientras
+    // está encendida (como hace Html5Qrcode.getCameras) falla en iPhone.
     let cams = [];
-    try { cams = await Html5Qrcode.getCameras(); } catch (e) { /* sin lista */ }
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      cams = devices.filter((d) => d.kind === 'videoinput' && d.deviceId).map((d) => ({ id: d.deviceId, label: d.label }));
+    } catch (e) { /* sin lista */ }
     const sel = $('camSelect');
     sel.innerHTML = '';
     const opt = (value, label) => { const o = document.createElement('option'); o.value = value; o.textContent = label; sel.appendChild(o); };
@@ -265,7 +270,7 @@
     cams.forEach((c, i) => opt(c.id, c.label || 'Cámara ' + (i + 1)));
     const current = API.store.get('camera', '');
     sel.value = cams.some((c) => c.id === current) ? current : '';
-    sel.classList.toggle('hidden', cams.length < 2);
+    sel.classList.toggle('hidden', cams.length === 0);
   }
 
   async function switchCamera(id) {
